@@ -1,0 +1,88 @@
+#!/bin/bash
+# Licensed under the GNU General Public License Version 2
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+####################################################################################################
+## Authored and maintained by Anthony Nordquist of the SalineOS project. http://www.salineos.com/  salinelinux@gmail.com 
+## Copyright Anthony Nordquist 2012
+
+## Load translations
+
+LanguageLess="$(echo "$LANG" | awk -F '.' '{print $1}')"
+
+if [ -f /etc/thunar-playlist-scripts/Translations/$LanguageLess ]; then
+ . /etc/thunar-playlist-scripts/Translations/$LanguageLess
+else
+ . /etc/thunar-playlist-scripts/Translations/en_US
+fi
+## Set arrays for yad options
+Title=( "--title=Thunar Playlists" )
+WindowIcon=( "--window-icon=playlist" )
+
+## Ask the user where to save the 
+
+Destination=$(yad "${Title[@]}" "${WindowIcon[@]}" --filename="$(pwd).m3u" --file-selection --save --confirm-overwrite --width="600" --text-align="center" --height="550" --text-align="center" --text="$TPWHERESAVE\n" --button=$"gtk-quit:3" --button=$"gtk-save:2")
+
+ret="$?"
+
+if [ "$ret" = "252" ]; then
+ exit
+elif [ "$ret" = "3" ]; then
+ exit
+elif [ "$Destination" = "" ]; then
+ yad "${Title[@]}" --image="error" --window-icon="error" --text="$TPNOFILE\n" --button=$"gtk-quit:1"
+fi
+
+## Force saving the playlist in .m3u
+if [ "$(echo "$Destination" | grep ".m3u")" = "" ]; then
+ Destination="$Destination.m3u"
+fi
+
+## Remove existing playlist if it exists
+if [ -f "$Destination" ]; then
+ rm -rf "$Destination"
+fi
+
+## Set variables
+Target=$(dirname "$Destination")
+FileName=$(basename "$Destination")
+
+## Call the python shell for this since doing it in bash is stupid 
+for i in "$@"; do 
+ TempFile=$(python -c "import os.path; print os.path.relpath('$i', '$Target')")
+ FileArray=( "${FileArray[@]}" "$TempFile" )
+done
+
+
+for i in "${FileArray[@]}"; do
+ echo "$i" >>"$Destination"
+ if [ "$?" != "0" ]; then
+  notify-send -u normal -i error -t 35000 "
+$TCPERROR1
+$TCPERROR2
+"
+  exit
+ fi
+done
+
+sleep 1
+
+## Tell the user we are done
+notify-send -u normal -i playlist -t 35000 "
+$TCPDONE 
+$FileName
+"
+
+exit

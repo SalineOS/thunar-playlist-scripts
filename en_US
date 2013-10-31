@@ -1,0 +1,19 @@
+export TPNOFILE="You must select where to save the playlist."
+
+export TPWHERESAVE="Please select where to save the playlist."
+
+export TPWHEREADD="Please slect the playlist to add to."
+
+export TPNOTM3U="$Destination is not an m3u playlist file."
+
+export TCPDONE="Completed creation of"
+
+export TATPDONE="Files added to"
+
+export TPWHEREREMOVE="Please select the playlist to remove files from."
+
+export TRFPDONE="Completed removal of files from"
+
+export TCPERROR1="Cannot complete playlist"
+
+export TCPERROR2="operation, permission denied."
